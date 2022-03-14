@@ -43,55 +43,45 @@ class Network(nn.Module):
 
         return t_final, t
 
-class discriminator_model(nn.Module):
-
+class Encoder(nn.Module):
     def __init__(self):
-        super(discriminator_model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 128, 4, 2, 1)
-        self.conv2 = nn.Conv2d(128, 256, 4, 2, 1)
-        self.conv2_bn = nn.BatchNorm2d(256)
-        self.conv3 = nn.Conv2d(256, 512, 4, 2, 1)
-        self.conv3_bn = nn.BatchNorm2d(512)
-        self.conv4 = nn.Conv2d(512, 1024, 4, 2, 1)
-        self.conv4_bn = nn.BatchNorm2d(1024)
-        self.conv5 = nn.Conv2d(1024, 1, 4, 1, 0)
-    
-    def weight_init(self):
-        for m in self._modules:
-            normal_init(self._modules[m])
-      
-    def forward(self, input):
-        x = F.leaky_relu(self.conv1(input), 0.2)
-        x = F.leaky_relu(self.conv2_bn(self.conv2(x)), 0.2)
-        x = F.leaky_relu(self.conv3_bn(self.conv3(x)), 0.2)
-        x = F.leaky_relu(self.conv4_bn(self.conv4(x)), 0.2)
-        x = F.sigmoid(self.conv5(x))
+        super(Encoder, self).__init__()
+        self.conv1 = nn.Conv2d(1, 8, kernel_size=(3,3))
+        self.conv2 = nn.Conv2d(8, 16, kernel_size=(3,3))
+        self.conv3 = nn.Conv2d(16, 32, kernel_size=(3,3))
+        self.conv4 = nn.Conv2d(32, 64, kernel_size=(3,3))
 
+    def forward(self, x):
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
         return x
 
-class generator_model(nn.Module):
-
+class Decoder(nn.Module):
     def __init__(self):
-        super(generator_model, self).__init__()
-        self.deconv1 = nn.ConvTranspose2d(100, 1024, 4, 1, 0)
-        self.deconv1_bn = nn.BatchNorm2d(1024)
-        self.deconv2 = nn.ConvTranspose2d(1024, 512, 4, 2, 1)
-        self.deconv2_bn = nn.BatchNorm2d(512)
-        self.deconv3 = nn.ConvTranspose2d(512, 256, 4, 2, 1)
-        self.deconv3_bn = nn.BatchNorm2d(256)
-        self.deconv4 = nn.ConvTranspose2d(256, 128, 4, 2, 1)
-        self.deconv4_bn = nn.BatchNorm2d(128)
-        self.deconv5 = nn.ConvTranspose2d(128, 1, 4, 2, 1)
-    
-    def weight_init(self):
-        for m in self._modules:
-            normal_init(self._modules[m])
-      
-    def forward(self, input):
-        x = F.relu(self.deconv1_bn(self.deconv1(input)))
-        x = F.relu(self.deconv2_bn(self.deconv2(x)))
-        x = F.relu(self.deconv3_bn(self.deconv3(x)))
-        x = F.relu(self.deconv4_bn(self.deconv4(x)))
-        x = F.tanh(self.deconv5(x))
+        super(Decoder, self).__init__()
+        self.conv1 = nn.ConvTranspose2d(64, 32, kernel_size=(3,3))
+        self.conv2 = nn.ConvTranspose2d(32, 16, kernel_size=(3,3))
+        self.conv3 = nn.ConvTranspose2d(16, 8, kernel_size=(3,3))
+        self.conv4 = nn.ConvTranspose2d(8, 1, kernel_size=(3,3))
+        self.sigmoid_activation = torch.nn.Sigmoid()
 
+    def forward(self, x):
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
+        x = self.sigmoid_activation(x)
+        return x
+
+class Autoencoder(torch.nn.Module):
+    def __init__(self):
+        super(Autoencoder, self).__init__()
+        self.encoder = Encoder()
+        self.decoder = Decoder()
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
         return x
