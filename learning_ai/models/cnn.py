@@ -42,7 +42,6 @@ class Network(nn.Module):
         # don't need softmax here since we'll use cross-entropy as activation.
 
         return t_final, t
-
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
