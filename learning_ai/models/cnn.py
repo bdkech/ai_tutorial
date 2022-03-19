@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Build the neural network, expand on top of nn.Module
-class Network(nn.Module):
+class CNN(nn.Module):
     def __init__(self):
         super().__init__()
 
